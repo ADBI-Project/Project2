@@ -4,7 +4,7 @@ from pyspark.streaming.kafka import KafkaUtils
 import operator
 import numpy as np
 import matplotlib.pyplot as plt
-
+import matplotlib.lines as mlines
 
 def main():
     conf = SparkConf().setMaster("local[2]").setAppName("Streamer")
@@ -15,8 +15,8 @@ def main():
     pwords = load_wordlist("positive.txt")
     nwords = load_wordlist("negative.txt")
    
-    counts = stream(ssc, pwords, nwords, 50)
-    print counts
+    counts = stream(ssc, pwords, nwords, 100)
+    # print counts
     make_plot(counts)
 
 
@@ -25,6 +25,17 @@ def make_plot(counts):
     Plot the counts for the positive and negative words for each timestep.
     Use plt.show() so that the plot will popup.
     """
+    positive = np.array([x[0][1] for x in counts if len(x)>0])
+    negative = np.array([x[1][1] for x in counts if len(x)>0])
+    x_axis = np.array(range(len(positive)))
+    plt.plot(x_axis, positive, '.b-', x_axis, negative, '.g-')
+    plt.axis([-1, x_axis[-1]+1, min(min(negative),min(positive))-20, max(max(negative),max(positive))+20])
+    plt.ylabel('Word count')
+    plt.xlabel("Time step")
+    blue_line = mlines.Line2D([], [], color='blue', marker='.', markersize=10, label='positive')
+    green_line = mlines.Line2D([], [], color='green', marker='.', markersize=10, label='negative')
+    plt.legend(handles=[blue_line, green_line])
+    plt.show()
     # YOUR CODE HERE
 
 
